@@ -67,7 +67,7 @@
                 svg.append("image").attr("style","display:block;").attr("xlink:href",function(){return "2006/InfoVis/"+d.data.data.paperID+"/"+d.data.id;})
                     .attr("height",0).attr("width",0).attr("x",d.x-10).attr("y",d.y-10);return d.r; })
             .on("mouseover",function(d){
-                //if(!d.children)
+                if(!d.children)
                 svg.append("image").attr("xlink:href",function(){return "2006/InfoVis/"+d.data.data.paperID+"/"+d.data.id;})
                     .attr("height",400).attr("width",400).attr("x",1000).attr("y",0);
 
