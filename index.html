@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+    circle {
+        fill: rgb(31, 119, 180);
+        fill-opacity: .25;
+        stroke: rgb(31, 119, 180);
+        stroke-width: 0.3px;
+    }
+
+    .leaf circle {
+
+        fill-opacity: 1;
+    }
+
+    text {
+        font: 10px sans-serif;
+        text-anchor: middle;
+    }
+
+</style>
+<svg width="1360" height="960"></svg>
+
+<script src="src/color-thief.js"></script>
+<script src="examples/js/jquery.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script>
+
+    var svg = d3.select("svg"),
+        diameter = +svg.attr("width")-400,
+        g = svg.append("g").attr("transform", "translate(2,2)"),
+        format = d3.format(",d");
+
+    var pack = d3.pack()
+        .size([diameter - 4, diameter - 4]);
+
+    d3.csv("2006InfoVis2.csv").then(function(data){
+
+    console.log(data);
+    // var entries = d3.nest()
+    //     .key(function(d) { return d.paperID; }).sortKeys(d3.ascending)
+    //     //.key(function(d) { return d.variety; }).sortKeys(d3.descending)
+    //     .entries(data);
+
+        var root1 = d3.stratify()
+            .id(function(d) { return d.imageID; })
+            .parentId(function(d) { return d.paperID; })
+            (data);
+        var root = d3.hierarchy(root1)
+            .sum(function(d) { return d.data.size; })
+            .sort(function(a, b) { return b.value - a.value; });
+    console.log(root1);
+    console.log(root);
+        var node = g.selectAll(".node")
+            .data(pack(root).descendants())
+            .enter().append("g")
+            .attr("class", function(d) { return d.children ? "node" : "leaf node"; })
+            .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+        node.append("title")
+            .text(function(d) { return d.data.id + "\n" + format(d.value); });
+
+        node.append("circle")
+            .attr("r", function(d) {var image = new Image();
+            //load image
+                svg.append("image").attr("style","display:block;").attr("xlink:href",function(){return "2006/InfoVis/"+d.data.data.paperID+"/"+d.data.id;})
+                    .attr("height",0).attr("width",0).attr("x",d.x-10).attr("y",d.y-10);return d.r; })
+            .on("mouseover",function(d){
+                //if(!d.children)
+                svg.append("image").attr("xlink:href",function(){return "2006/InfoVis/"+d.data.data.paperID+"/"+d.data.id;})
+                    .attr("height",400).attr("width",400).attr("x",1000).attr("y",0);
+
+
+
+        }).on("mouseout",function(d){
+            svg.selectAll("image").remove();
+        })
+            .attr("style",function(d){
+            //change leaf node color
+            if(d.children){
+                console.log(d.children.length);
+                //return "stroke-width:"+d.children.length/3+"px;";
+            }
+            else{
+                var image = new Image();
+                // console.log(d.data.data.paperID);
+                image.src="2006/InfoVis/"+d.data.data.paperID+"/"+d.data.id;
+                //image.onload=function(){alert("going")};
+                //var body = document.querySelector('body');
+                //body.appendChild(img);
+
+                //console.log(image.src);
+                var colorThief = new ColorThief();
+                var domaincolor = colorThief.getColor(image);
+                //console.log(domaincolor);
+                return "fill:rgb("+domaincolor+");";
+            }
+
+
+        });
+
+        node.filter(function(d) { return !d.children; }).append("text")
+            .attr("dy", "0.3em")
+            //.text(function(d) { return d.data.id.substring(27,29); });
+    });
+
+
+</script>
